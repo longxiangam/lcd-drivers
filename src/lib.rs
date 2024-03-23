@@ -76,13 +76,14 @@ mod interface;
 mod graphics;
 
 
+mod uc1638;
 
 
 /// Includes everything important besides the chosen Display
 pub mod prelude {
     pub use crate::color::{Color, OctColor, TriColor};
     pub use crate::traits::{
-        QuickRefresh,  WaveshareDisplay, WaveshareThreeColorDisplay,
+          WaveshareDisplay, WaveshareThreeColorDisplay,
     };
 
     pub use crate::SPI_MODE;
