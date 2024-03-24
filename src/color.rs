@@ -1,5 +1,6 @@
 //! B/W Color for EPDs
 
+use embedded_graphics::pixelcolor::raw::RawU2;
 use embedded_graphics::pixelcolor::BinaryColor;
 use embedded_graphics::pixelcolor::PixelColor;
 
@@ -248,6 +249,58 @@ impl TriColor {
 
 impl PixelColor for TriColor {
     type Raw = ();
+}
+
+///定义颜色
+#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
+pub enum TwoBitColor {
+    /// Inactive pixel.
+    Black,
+    /// Active pixel.
+    White,
+    /// 1级灰度
+    Gray1,
+    /// 2级灰度
+    Gray2,
+}
+
+impl Default for TwoBitColor {
+    fn default() -> Self {
+        Self::Black
+    }
+}
+
+impl TwoBitColor {
+
+    ///
+    #[inline]
+    pub fn invert(self) -> Self {
+        match self {
+            TwoBitColor::White => TwoBitColor::Black,
+            TwoBitColor::Black => TwoBitColor::White,
+            TwoBitColor::Gray1 => TwoBitColor::Gray2,
+            TwoBitColor::Gray2 => TwoBitColor::Gray1,
+        }
+    }
+
+
+    ///
+    #[inline]
+    pub fn is_on(self) -> bool {
+        self == TwoBitColor::White
+    }
+
+    ///
+    #[inline]
+    pub fn is_off(self) -> bool {
+        self == TwoBitColor::Black
+    }
+
+
+}
+
+impl PixelColor for TwoBitColor {
+    type Raw = RawU2;
 }
 
 #[cfg(test)]

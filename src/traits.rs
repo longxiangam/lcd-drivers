@@ -10,7 +10,12 @@ pub(crate) trait Command {
     fn address(self) -> u8;
 }
 
-
+///支持直接写命令码
+impl Command for u8 {
+    fn address(self) -> u8 {
+        return self
+    }
+}
 
 
 pub(crate) trait InternalWiAdditions<SPI, CS, BUSY, DC, RST, DELAY>

@@ -63,7 +63,7 @@
 #![no_std]
 #![deny(missing_docs)]
 
-#[cfg(feature = "graphics")]
+
 pub mod graphics;
 
 mod traits;
@@ -72,8 +72,6 @@ pub mod color;
 
 /// Interface for the physical connection between display and the controlling device
 mod interface;
-
-mod graphics;
 
 
 mod uc1638;

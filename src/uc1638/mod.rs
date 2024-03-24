@@ -13,9 +13,9 @@ use command::Command;
 
 
 /// Width of the display
-pub const WIDTH: u32 = 200;
+pub const WIDTH: u32 = 240;
 /// Height of the display
-pub const HEIGHT: u32 = 300;
+pub const HEIGHT: u32 = 96;
 /// Default Background Color
 pub const DEFAULT_BACKGROUND_COLOR: Color = Color::White;
 const IS_BUSY_LOW: bool = true;
@@ -24,16 +24,16 @@ const IS_BUSY_LOW: bool = true;
 mod graphics;
 mod command;
 
-pub use self::graphics::Display3in27;
-pub use self::graphics::TwoBitColor;
-pub use self::graphics::TwoBitColorDisplay;
+
 
 pub mod prelude {
 
     pub use crate::traits::{
           WaveshareDisplay, WaveshareThreeColorDisplay,
     };
-
+    
+    pub use crate::color::TwoBitColor;
+    pub use crate::graphics::TwoBitColorDisplay;
 
 
 }
@@ -105,7 +105,6 @@ where
         buffer: &[u8],
         _delay: &mut DELAY,
     ) -> Result<(), SPI::Error> {
-        self.wait_until_idle();
 /*        let color_value = self.color.get_byte_value();
 
         self.interface.cmd(spi, Command::DataStartTransmission1)?;
@@ -197,27 +196,12 @@ where
         self.interface.cmd_with_data(spi, command, data)
     }
 
-    fn wait_until_idle(&mut self) {
-        let _ = self.interface.wait_until_idle(IS_BUSY_LOW);
-    }
 
     fn send_resolution(&mut self, spi: &mut SPI) -> Result<(), SPI::Error> {
         Ok(())
     }
 
-    fn set_lut_helper(
-        &mut self,
-        spi: &mut SPI,
-        lut_vcom: &[u8],
-        lut_ww: &[u8],
-        lut_bw: &[u8],
-        lut_wb: &[u8],
-        lut_bb: &[u8],
-    ) -> Result<(), SPI::Error> {
-        self.wait_until_idle();
-   
-        Ok(())
-    }
+  
 
     /// Helper function. Sets up the display to send pixel data to a custom
     /// starting point.
