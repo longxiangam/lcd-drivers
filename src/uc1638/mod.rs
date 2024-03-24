@@ -42,20 +42,19 @@ pub mod prelude {
 
 /// Lcd2in7 driver
 ///
-pub struct Lcd2in7<SPI, CS, BUSY, DC, RST, DELAY> {
+pub struct Lcd2in7<SPI, CS,  DC, RST, DELAY> {
     /// Connection Interface
-    interface: DisplayInterface<SPI, CS, BUSY, DC, RST, DELAY>,
+    interface: DisplayInterface<SPI, CS,  DC, RST, DELAY>,
     /// Background Color
     color: Color,
 
 }
 
-impl<SPI, CS, BUSY, DC, RST, DELAY> InternalWiAdditions<SPI, CS, BUSY, DC, RST, DELAY>
-    for Lcd2in7<SPI, CS, BUSY, DC, RST, DELAY>
+impl<SPI, CS, DC, RST, DELAY> InternalWiAdditions<SPI, CS, DC, RST, DELAY>
+    for Lcd2in7<SPI, CS,  DC, RST, DELAY>
 where
     SPI: Write<u8>,
     CS: OutputPin,
-    BUSY: InputPin,
     DC: OutputPin,
     RST: OutputPin,
     DELAY: DelayMs<u8>,
@@ -66,12 +65,11 @@ where
     }
 }
 
-impl<SPI, CS, BUSY, DC, RST, DELAY> WaveshareDisplay<SPI, CS, BUSY, DC, RST, DELAY>
-    for Lcd2in7<SPI, CS, BUSY, DC, RST, DELAY>
+impl<SPI, CS, DC, RST, DELAY> WaveshareDisplay<SPI, CS,  DC, RST, DELAY>
+    for Lcd2in7<SPI, CS,  DC, RST, DELAY>
 where
     SPI: Write<u8>,
     CS: OutputPin,
-    BUSY: InputPin,
     DC: OutputPin,
     RST: OutputPin,
     DELAY: DelayMs<u8>,
@@ -80,12 +78,11 @@ where
     fn new(
         spi: &mut SPI,
         cs: CS,
-        busy: BUSY,
         dc: DC,
         rst: RST,
         delay: &mut DELAY,
     ) -> Result<Self, SPI::Error> {
-        let interface = DisplayInterface::new(cs, busy, dc, rst);
+        let interface = DisplayInterface::new(cs, dc, rst);
         let color = DEFAULT_BACKGROUND_COLOR;
 
         let mut epd = Lcd2in7 {
@@ -170,11 +167,10 @@ where
     
 }
 
-impl<SPI, CS, BUSY, DC, RST, DELAY> Lcd2in7<SPI, CS, BUSY, DC, RST, DELAY>
+impl<SPI, CS, DC, RST, DELAY> Lcd2in7<SPI, CS, DC, RST, DELAY>
 where
     SPI: Write<u8>,
     CS: OutputPin,
-    BUSY: InputPin,
     DC: OutputPin,
     RST: OutputPin,
     DELAY: DelayMs<u8>,

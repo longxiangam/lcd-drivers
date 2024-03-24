@@ -7,36 +7,33 @@ use embedded_hal::{
 
 /// The Connection Interface of all (?) Waveshare EPD-Devices
 ///
-pub(crate) struct DisplayInterface<SPI, CS, BUSY, DC, RST, DELAY> {
+pub(crate) struct DisplayInterface<SPI, CS,  DC, RST, DELAY> {
     /// SPI
     _spi: PhantomData<SPI>,
     /// DELAY
     _delay: PhantomData<DELAY>,
     /// CS for SPI
     cs: CS,
-    /// Low for busy, Wait until display is ready!
-    busy: BUSY,
+
     /// Data/Command Control Pin (High for data, Low for command)
     dc: DC,
     /// Pin for Resetting
     rst: RST,
 }
 
-impl<SPI, CS, BUSY, DC, RST, DELAY> DisplayInterface<SPI, CS, BUSY, DC, RST, DELAY>
+impl<SPI, CS,  DC, RST, DELAY> DisplayInterface<SPI, CS,  DC, RST, DELAY>
 where
     SPI: Write<u8>,
     CS: OutputPin,
-    BUSY: InputPin,
     DC: OutputPin,
     RST: OutputPin,
     DELAY: DelayMs<u8>,
 {
-    pub fn new(cs: CS, busy: BUSY, dc: DC, rst: RST) -> Self {
+    pub fn new(cs: CS,  dc: DC, rst: RST) -> Self {
         DisplayInterface {
             _spi: PhantomData::default(),
             _delay: PhantomData::default(),
             cs,
-            busy,
             dc,
             rst,
         }
@@ -121,46 +118,6 @@ where
         Ok(())
     }
 
-    /// Waits until device isn't busy anymore (busy == HIGH)
-    ///
-    /// This is normally handled by the more complicated commands themselves,
-    /// but in the case you send data and commands directly you might need to check
-    /// if the device is still busy
-    ///
-    /// is_busy_low
-    ///
-    ///  - TRUE for epd4in2, epd2in13, Lcd2in7, epd5in83, epd7in5
-    ///  - FALSE for epd2in9, epd1in54 (for all Display Type A ones?)
-    ///
-    /// Most likely there was a mistake with the 2in9 busy connection
-    /// //TODO: use the #cfg feature to make this compile the right way for the certain types
-    pub(crate) fn wait_until_idle(&mut self, is_busy_low: bool) {
-        // //tested: worked without the delay for all tested devices
-        // //self.delay_ms(1);
-        while self.is_busy(is_busy_low) {
-            // //tested: REMOVAL of DELAY: it's only waiting for the signal anyway and should continue work asap
-            // //old: shorten the time? it was 100 in the beginning
-            // //self.delay_ms(5);
-        }
-    }
-
-    /// Checks if device is still busy
-    ///
-    /// This is normally handled by the more complicated commands themselves,
-    /// but in the case you send data and commands directly you might need to check
-    /// if the device is still busy
-    ///
-    /// is_busy_low
-    ///
-    ///  - TRUE for epd4in2, epd2in13, Lcd2in7, epd5in83, epd7in5
-    ///  - FALSE for epd2in9, epd1in54 (for all Display Type A ones?)
-    ///
-    /// Most likely there was a mistake with the 2in9 busy connection
-    /// //TODO: use the #cfg feature to make this compile the right way for the certain types
-    pub(crate) fn is_busy(&self, is_busy_low: bool) -> bool {
-        (is_busy_low && self.busy.is_low().unwrap_or(false))
-            || (!is_busy_low && self.busy.is_high().unwrap_or(false))
-    }
 
     /// Resets the device.
     ///

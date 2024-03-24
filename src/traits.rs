@@ -18,11 +18,10 @@ impl Command for u8 {
 }
 
 
-pub(crate) trait InternalWiAdditions<SPI, CS, BUSY, DC, RST, DELAY>
+pub(crate) trait InternalWiAdditions<SPI, CS,  DC, RST, DELAY>
 where
     SPI: Write<u8>,
     CS: OutputPin,
-    BUSY: InputPin,
     DC: OutputPin,
     RST: OutputPin,
     DELAY: DelayMs<u8>,
@@ -41,12 +40,11 @@ where
 }
 
 /// Functions to interact with three color panels
-pub trait WaveshareThreeColorDisplay<SPI, CS, BUSY, DC, RST, DELAY>:
-    WaveshareDisplay<SPI, CS, BUSY, DC, RST, DELAY>
+pub trait WaveshareThreeColorDisplay<SPI, CS,  DC, RST, DELAY>:
+    WaveshareDisplay<SPI, CS,  DC, RST, DELAY>
 where
     SPI: Write<u8>,
     CS: OutputPin,
-    BUSY: InputPin,
     DC: OutputPin,
     RST: OutputPin,
     DELAY: DelayMs<u8>,
@@ -118,11 +116,10 @@ where
 ///# Ok(())
 ///# }
 ///```
-pub trait WaveshareDisplay<SPI, CS, BUSY, DC, RST, DELAY>
+pub trait WaveshareDisplay<SPI, CS,  DC, RST, DELAY>
 where
     SPI: Write<u8>,
     CS: OutputPin,
-    BUSY: InputPin,
     DC: OutputPin,
     RST: OutputPin,
     DELAY: DelayMs<u8>,
@@ -135,7 +132,6 @@ where
     fn new(
         spi: &mut SPI,
         cs: CS,
-        busy: BUSY,
         dc: DC,
         rst: RST,
         delay: &mut DELAY,
