@@ -129,7 +129,7 @@ where
     ///
     /// is_busy_low
     ///
-    ///  - TRUE for epd4in2, epd2in13, epd2in7, epd5in83, epd7in5
+    ///  - TRUE for epd4in2, epd2in13, Lcd2in7, epd5in83, epd7in5
     ///  - FALSE for epd2in9, epd1in54 (for all Display Type A ones?)
     ///
     /// Most likely there was a mistake with the 2in9 busy connection
@@ -152,7 +152,7 @@ where
     ///
     /// is_busy_low
     ///
-    ///  - TRUE for epd4in2, epd2in13, epd2in7, epd5in83, epd7in5
+    ///  - TRUE for epd4in2, epd2in13, Lcd2in7, epd5in83, epd7in5
     ///  - FALSE for epd2in9, epd1in54 (for all Display Type A ones?)
     ///
     /// Most likely there was a mistake with the 2in9 busy connection

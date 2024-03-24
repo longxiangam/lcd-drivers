@@ -40,9 +40,9 @@ pub mod prelude {
 
 
 
-/// Epd3in27 driver
+/// Lcd2in7 driver
 ///
-pub struct Epd3in27<SPI, CS, BUSY, DC, RST, DELAY> {
+pub struct Lcd2in7<SPI, CS, BUSY, DC, RST, DELAY> {
     /// Connection Interface
     interface: DisplayInterface<SPI, CS, BUSY, DC, RST, DELAY>,
     /// Background Color
@@ -51,7 +51,7 @@ pub struct Epd3in27<SPI, CS, BUSY, DC, RST, DELAY> {
 }
 
 impl<SPI, CS, BUSY, DC, RST, DELAY> InternalWiAdditions<SPI, CS, BUSY, DC, RST, DELAY>
-    for Epd3in27<SPI, CS, BUSY, DC, RST, DELAY>
+    for Lcd2in7<SPI, CS, BUSY, DC, RST, DELAY>
 where
     SPI: Write<u8>,
     CS: OutputPin,
@@ -67,7 +67,7 @@ where
 }
 
 impl<SPI, CS, BUSY, DC, RST, DELAY> WaveshareDisplay<SPI, CS, BUSY, DC, RST, DELAY>
-    for Epd3in27<SPI, CS, BUSY, DC, RST, DELAY>
+    for Lcd2in7<SPI, CS, BUSY, DC, RST, DELAY>
 where
     SPI: Write<u8>,
     CS: OutputPin,
@@ -88,7 +88,7 @@ where
         let interface = DisplayInterface::new(cs, busy, dc, rst);
         let color = DEFAULT_BACKGROUND_COLOR;
 
-        let mut epd = Epd3in27 {
+        let mut epd = Lcd2in7 {
             interface,
             color,
         };
@@ -170,7 +170,7 @@ where
     
 }
 
-impl<SPI, CS, BUSY, DC, RST, DELAY> Epd3in27<SPI, CS, BUSY, DC, RST, DELAY>
+impl<SPI, CS, BUSY, DC, RST, DELAY> Lcd2in7<SPI, CS, BUSY, DC, RST, DELAY>
 where
     SPI: Write<u8>,
     CS: OutputPin,
