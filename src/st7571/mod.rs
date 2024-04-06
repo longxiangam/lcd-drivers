@@ -11,7 +11,7 @@ use command::Command;
 //The Lookup Tables for the Display
 
 /// Width of the display
-pub const WIDTH: u32 = 240;
+pub const WIDTH: u32 = 128;
 /// Height of the display
 pub const HEIGHT: u32 = 96;
 /// Default Background Color
@@ -22,7 +22,7 @@ mod graphics;
 
 ///
 pub mod prelude {
-    pub use crate::uc1638::graphics::Display2in7;
+    pub use crate::st7571::graphics::Display2in3;
 
     pub use crate::traits::{WaveshareDisplay, WaveshareThreeColorDisplay};
 
@@ -30,9 +30,9 @@ pub mod prelude {
     pub use crate::graphics::TwoBitColorDisplay;
 }
 
-/// Lcd2in7 driver
+/// Lcd2in3 driver
 ///
-pub struct Lcd2in7<SPI, CS, DC, RST, DELAY> {
+pub struct Lcd2in3<SPI, CS, DC, RST, DELAY> {
     /// Connection Interface
     interface: DisplayInterface<SPI, CS, DC, RST, DELAY>,
     /// Background Color
@@ -40,7 +40,7 @@ pub struct Lcd2in7<SPI, CS, DC, RST, DELAY> {
 }
 
 impl<SPI, CS, DC, RST, DELAY> InternalWiAdditions<SPI, CS, DC, RST, DELAY>
-    for Lcd2in7<SPI, CS, DC, RST, DELAY>
+    for Lcd2in3<SPI, CS, DC, RST, DELAY>
 where
     SPI: Write<u8>,
     CS: OutputPin,
@@ -51,39 +51,59 @@ where
     fn init(&mut self, spi: &mut SPI, delay: &mut DELAY) -> Result<(), SPI::Error> {
         self.interface.reset(delay, 10);
 
-        self.cmd_with_data_u8(spi, 0xE1, &[0xE2]);
-
-        delay.delay_ms(10);
-
-        self.cmd_with_data_u8(spi, 0x04, &[0x00]);
-
-        self.command_u8(spi, 0xEB);
-
-        self.cmd_with_data_u8(spi, 0x81, &[80]);
-
-        self.cmd_with_data_u8(spi, 0xb8, &[0x00]);
-
-        self.command_u8(spi, 0xa3);
-        self.command_u8(spi, 0x94);
-        self.command_u8(spi, 0xc4); 
-
-        self.command_u8(spi, 0x60);
-        self.command_u8(spi, 0x70);
-
-        self.cmd_with_data_u8(spi, 0xf1, &[95]);;
-
-        self.command_u8(spi, 0xd2);
-        self.command_u8(spi, 0xd5);
-
-        self.cmd_with_data_u8(spi, 0xc9, &[0xaF]);
+        self.command_u8(spi, 0xE2);
 
         delay.delay_ms(100);
+
+        self.command_u8(spi, 0xAE);
+        self.command_u8(spi, 0x38);
+        self.command_u8(spi, 0xF4);
+        self.command_u8(spi, 0xA0);
+        self.command_u8(spi, 0xC8);
+
+        self.command_u8(spi, 0x44);
+        self.command_u8(spi, 0x00);
+
+        self.command_u8(spi, 0x40);
+        self.command_u8(spi, 0x00);
+    
+        self.command_u8(spi, 0xAB);
+        self.command_u8(spi, 0x27);
+
+        self.command_u8(spi, 0x81);
+        self.command_u8(spi, 40);
+
+
+        self.command_u8(spi, 0x57);
+        self.command_u8(spi, 0x48);
+        self.command_u8(spi, 0x61);
+
+
+        self.command_u8(spi, 0x2C);
+        delay.delay_ms(100);
+
+        self.command_u8(spi, 0x2E);
+        delay.delay_ms(100);
+
+        self.command_u8(spi, 0x2F);
+        delay.delay_ms(10);
+
+        self.command_u8(spi, 0x7B);
+        self.command_u8(spi, 0x10);
+        self.command_u8(spi, 0x00);
+
+
+        self.command_u8(spi, 0xa6);
+        self.command_u8(spi, 0xa4);
+        self.command_u8(spi, 0xaF);
+
+        delay.delay_ms(10);
         Ok(())
     }
 }
 
 impl<SPI, CS, DC, RST, DELAY> WaveshareDisplay<SPI, CS, DC, RST, DELAY>
-    for Lcd2in7<SPI, CS, DC, RST, DELAY>
+    for Lcd2in3<SPI, CS, DC, RST, DELAY>
 where
     SPI: Write<u8>,
     CS: OutputPin,
@@ -96,7 +116,7 @@ where
         let interface = DisplayInterface::new(cs, dc, rst);
         let color = DEFAULT_BACKGROUND_COLOR;
 
-        let mut epd = Lcd2in7 { interface, color };
+        let mut epd = Lcd2in3 { interface, color };
 
         epd.init(spi, delay)?;
 
@@ -143,20 +163,26 @@ where
     fn clear_frame(&mut self, spi: &mut SPI, _delay: &mut DELAY) -> Result<(), SPI::Error> {
         let color_value = self.color.get_byte_value();
 
-        self.cmd_with_data_u8(spi, 0x04, &[0x00]);
-        self.command_u8(spi, 0x60);
-        self.command_u8(spi, 0x70);
 
-        for i in 0..WIDTH {
-            for j in 0..(HEIGHT / 2) {
-               
-                    self.cmd_with_data_u8(spi, 0x01, &[0x00]);
-                
+
+
+        let j = 0;
+        //y
+        self.command_u8(spi, (0b10110000 | (j & 0b00001111) as u8) );
+        //x
+
+        self.command_u8(spi, (0b00010000 | ((0 >> 4) & 0b00001111)) as u8);
+        self.command_u8(spi,  (0  & 0b00001111) as u8);
+
+        for j in 0..HEIGHT {
+            for i in 0..WIDTH/2 {
+
+                self.interface.data(spi, &[0x00]);
+
             }
         }
 
-      /*   self.goto(spi, 40, 40);
-        self.cmd_with_data_u8(spi, 0x01, &[0xFF,0x00,0xFF,0xFF]); */
+    
 
         Ok(())
     }
@@ -178,7 +204,7 @@ where
     }
 }
 
-impl<SPI, CS, DC, RST, DELAY> Lcd2in7<SPI, CS, DC, RST, DELAY>
+impl<SPI, CS, DC, RST, DELAY> Lcd2in3<SPI, CS, DC, RST, DELAY>
 where
     SPI: Write<u8>,
     CS: OutputPin,
@@ -186,60 +212,24 @@ where
     RST: OutputPin,
     DELAY: DelayMs<u8>,
 {
-    ///
-    pub fn set_windows_progame(&mut self,spi: &mut SPI) {
-    
-    /**	writei(0x04);	//设置CA,设置列地址(0-239)  
-	writed(0x00);	//设置为0(默认00H)
-	
-	//页面地址一共6位,分2次设置,灰度模式值范围0-39,黑白模式值范围0-19
-	writei(0x60);	//设置PA[3:0]=0000b,页地址的D3-D0位    
-	writei(0x70); 	//设置PA[5:4]=00b,  页地址的D5,D4位
-	
-	//整个屏幕是160行,黑白模式分19页,每页8行,4阶灰度分39页,每页4行
-	writei(0xF4);	//设置WPC0,显示范围起始列,范围0-239
-	writed(0);		//起始列=0
-	writei(0xF6);	//设置WPC1,显示范围结束列,范围0-239
-	writed(63);		//结束列=63,图像宽度64
-      
-	writei(0xF5);	//设置WPP0,显示范围起始页
-	writed(0);		//起始页=0
-	writei(0xF7);	//设置WPP1,显示范围结束页
-	writed(24);		//结束页=24,屏幕高96像素,4级灰度模式每页4行,96/4=24		
-      
-	writei(0xF9);	//窗口局部显示功能开 0xF8=关  0xF9=开 */
-        self.cmd_with_data_u8(spi, 0x04, &[0x00]);
-        self.command_u8(spi, 0x60);
-        self.command_u8(spi, 0x70);
 
-        self.cmd_with_data_u8(spi, 0xF4, &[0x00]);
-        self.cmd_with_data_u8(spi, 0xF6, &[63]);
-        self.cmd_with_data_u8(spi, 0xF5, &[0]);
-        self.cmd_with_data_u8(spi, 0xF6, &[24]);
-        self.command_u8(spi, 0xF6);
-        
-    }
 
     /// X对应列,值范围0-239
     /// Y对应页,值范围0-23,共24页,每页8行
     pub fn goto(&mut self,spi:&mut SPI,X: u8, Y: u8) {
-        let mut YY = Y; 
-        if(Y>23){YY=0;}	//保证页面代码最大为11
      
-        self.cmd_with_data_u8(spi, 0x04, &[X]);
+        //y
+        self.command_u8(spi, (0b10110000 | (Y & 0b00001111) as u8) );
+        //x
 
+        self.command_u8(spi, (0b00010000 | ((X >> 4) & 0b00001111)) as u8);
+        self.command_u8(spi,  (X  & 0b00001111) as u8);
         
-        self.command_u8( spi,0x60|(YY&0x0F) );
-        self.command_u8( spi,0x70|(YY>>4) );
 
-        //设置PA[3:0],页地址的D3-D0位   
-        //由于此屏幕只有96行,每8行为一页,所以只有12页,UC1638页面设置寄存器是6位,
-        //12页的话只用低4位就可以全部表达清楚,所以不用对高2位进行设置,默认高2位=00即可.
-        //writei( 0x70|(Y>>4) ); 	//设置PA[5:4],页地址的D5,D4位 
     }
     ///
     pub fn put_char(&mut self,spi: &mut SPI,data:&[u8]){
-        self.cmd_with_data_u8(spi, 0x01, data);
+        self.interface.data(spi, data);
     }
 
     fn send_data(&mut self, spi: &mut SPI, data: &[u8]) -> Result<(), SPI::Error> {

@@ -74,7 +74,10 @@ pub mod color;
 mod interface;
 
 
-mod uc1638;
+///
+pub mod uc1638;
+///
+pub mod st7571;
 
 
 /// Includes everything important besides the chosen Display
@@ -86,8 +89,10 @@ pub mod prelude {
 
     pub use crate::SPI_MODE;
 
-    #[cfg(feature = "graphics")]
     pub use crate::graphics::{Display, DisplayRotation, OctDisplay, TriDisplay};
+
+    pub use crate::uc1638::Lcd2in7;
+    pub use crate::st7571::Lcd2in3;
 }
 
 /// Computes the needed buffer length. Takes care of rounding up in case width

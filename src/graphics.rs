@@ -390,8 +390,8 @@ impl<'a> Display for VarDisplay<'a> {
     }
 }
 
-// Checks if a pos is outside the defined display
-fn outside_display(p: Point, width: u32, height: u32, rotation: DisplayRotation) -> bool {
+/// Checks if a pos is outside the defined display
+pub fn outside_display(p: Point, width: u32, height: u32, rotation: DisplayRotation) -> bool {
     if p.x < 0 || p.y < 0 {
         return true;
     }
@@ -410,8 +410,8 @@ fn outside_display(p: Point, width: u32, height: u32, rotation: DisplayRotation)
     }
     false
 }
-
-fn find_rotation(x: u32, y: u32, width: u32, height: u32, rotation: DisplayRotation) -> (u32, u32) {
+///
+pub fn find_rotation(x: u32, y: u32, width: u32, height: u32, rotation: DisplayRotation) -> (u32, u32) {
     let nx;
     let ny;
     match rotation {

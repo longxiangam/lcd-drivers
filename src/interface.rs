@@ -135,6 +135,6 @@ where
         let _ = self.rst.set_high();
         //TODO: the upstream libraries always sleep for 200ms here
         // 10ms works fine with just for the 7in5_v2 but this needs to be validated for other devices
-        delay.delay_ms(200);
+        delay.delay_ms(250);
     }
 }

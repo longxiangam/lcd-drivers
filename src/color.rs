@@ -272,6 +272,15 @@ impl Default for TwoBitColor {
 
 impl TwoBitColor {
 
+    /// Gets a full byte of black or white pixels
+    pub fn get_byte_value(self) -> u8 {
+        match self {
+            TwoBitColor::White => 0x00,
+            TwoBitColor::Black => 0xFF,
+            TwoBitColor::Gray1 => 0x01,
+            TwoBitColor::Gray2 => 0x10,
+        }
+    }
     ///
     #[inline]
     pub fn invert(self) -> Self {
