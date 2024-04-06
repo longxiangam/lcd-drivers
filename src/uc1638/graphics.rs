@@ -7,6 +7,7 @@ use crate::color::TwoBitColor;
 use crate::graphics::TwoBitColorDisplay;
 use crate::uc1638::{DEFAULT_BACKGROUND_COLOR, HEIGHT, WIDTH};
 use crate::graphics::{Display, DisplayRotation};
+use crate::st7571::prelude::Display2in3;
 
 /// 
 pub struct Display2in7 {
@@ -47,6 +48,8 @@ impl OriginDimensions for Display2in7 {
 }
 
 
+
+
 impl TwoBitColorDisplay for Display2in7 {
     fn buffer(&self) -> &[u8] {
         &self.buffer
@@ -63,4 +66,62 @@ impl TwoBitColorDisplay for Display2in7 {
     fn rotation(&self) -> DisplayRotation {
         self.rotation
     }
+
+
+    fn draw_helper(
+        &mut self,
+        width: u32,
+        height: u32,
+        pixel: Pixel<TwoBitColor>,
+    ) -> Result<(), Self::Error> {
+        let rotation = self.rotation();
+        let buffer = self.get_mut_buffer();
+
+        let Pixel(point, color) = pixel;
+        if crate::graphics::outside_display(point, width, height, rotation) {
+            return Ok(());
+        }
+
+        // Give us index inside the buffer and the bit-position in that u8 which needs to be changed
+
+        let (index, bit) =
+            find_position(point.x as u32, point.y as u32, width, height, rotation);
+        let index = index as usize;
+
+        // "Draw" the Pixel on that bit
+        match color {
+            TwoBitColor::Black => {
+                // clear bit in bw-buffer -> black
+                buffer[index] |= bit;
+            }
+            TwoBitColor::White => {
+                // set bit in bw-buffer -> white
+                buffer[index] &= !bit;
+            },
+            TwoBitColor::Gray1 => {
+                let code:u8 =0x55  & bit;
+                buffer[index] &= !bit;//先置为零
+                buffer[index] |= code;
+            },
+            TwoBitColor::Gray2 =>{
+                let code:u8 =0xAA  & bit;
+                buffer[index] &= !bit;//先置为零
+                buffer[index] |= code;
+            }
+        }
+
+        Ok(())
+    }
+}
+#[rustfmt::skip]
+fn find_position(x: u32, y: u32, width: u32, height: u32, rotation: DisplayRotation) -> (u32, u8) {
+    let (nx, ny) = crate::graphics::find_rotation(x, y, width, height, rotation);
+    //每列的四个像素放在1个字节中，2位一个像素，底位在前
+    let row = ny / 4;
+    let col = nx;
+
+    (
+        width  * row + col ,
+        0x03 << ((ny %4)*2)
+    )
 }
