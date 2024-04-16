@@ -8,10 +8,12 @@ edition = "2021"
 [dependencies]
 embedded-graphics = {version= "0.8",features = ["fixed"] }
 embedded-graphics-core = { version = "0.4" }
-embedded-hal ={ version = "0.2.7"}
+embedded-hal ={ package = "embedded-hal", version = "0.2.7",optional = true}
+embedded-hal-v2 ={ package = "embedded-hal",  version = "1.0.0",optional = true}
 embedded-hal-async = { version = "1.0.0", optional = true }
 
 [features]
-async=["embedded-hal-async"]
+async=["embedded-hal-async","embedded-hal-v2"]
+blocking=["embedded-hal"]
 uc1638=[]
 st7571=[]

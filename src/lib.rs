@@ -63,7 +63,9 @@ pub mod prelude {
 pub const fn buffer_len(width: usize, height: usize) -> usize {
     (width + 7) / 8 * height
 }
-
+#[cfg(feature = "async")]
+use embedded_hal_v2::spi::{Mode, Phase, Polarity};
+#[cfg(feature = "blocking")]
 use embedded_hal::spi::{Mode, Phase, Polarity};
 
 /// SPI mode -

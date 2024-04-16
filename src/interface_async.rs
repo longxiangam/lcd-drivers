@@ -1,7 +1,7 @@
 use crate::Command;
 use core::marker::PhantomData;
 use embedded_hal_async::{delay::DelayNs, digital::Wait, spi::SpiDevice};
-use embedded_hal::digital::OutputPin;
+use embedded_hal_v2::digital::OutputPin;
 
 
 /// The Connection Interface of all (?) Waveshare EPD-Devices
@@ -54,11 +54,20 @@ where
         let _ = self.dc.set_high();
 
         // Transfer data one u8 at a time over spi
-        self.write(spi, data).await?;
+        self.write(spi, data).await
 
-        Ok(())
     }
+    /// Basic function for sending an array of u8-values of data over spi
+    ///
+    /// Enables direct interaction with the device with the help of [command()](Epd4in2::command())
+    pub(crate) async fn data_all(&mut self, spi: &mut SPI, data: &[u8]) -> Result<(), SPI::Error> {
+        // high for data
+        let _ = self.dc.set_high();
 
+        // Transfer data one u8 at a time over spi
+        self.write_all(spi, data).await
+
+    }
     /// Basic function for sending [Commands](Command) and the data belonging to it.
     ///
     /// TODO: directly use ::write? cs wouldn't needed to be changed twice than
@@ -102,7 +111,10 @@ where
                 spi.write(data_chunk).await?;
             }
         } else {
-            spi.write(data).await?;
+            for datum in data {
+                spi.write(&[*datum]).await?;
+            }
+
         }
 
 
@@ -110,6 +122,12 @@ where
         Ok(())
     }
 
+    async fn write_all(&mut self, spi: &mut SPI, data: &[u8]) -> Result<(), SPI::Error> {
+
+        spi.write(data).await?;
+
+        Ok(())
+    }
 
     /// Resets the device.
     ///

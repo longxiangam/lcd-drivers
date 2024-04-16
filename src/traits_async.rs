@@ -1,6 +1,6 @@
 use core::marker::Sized;
 use embedded_hal_async::{delay::DelayNs, digital::Wait, spi::SpiDevice};
-use embedded_hal::digital::OutputPin;
+use embedded_hal_v2::digital::OutputPin;
 
 pub(crate) trait InternalWiAdditions<SPI, DC, RST, DELAY>
 where
@@ -19,7 +19,7 @@ where
     /// This function calls [reset](WaveshareDisplay::reset),
     /// so you don't need to call reset your self when trying to wake your device up
     /// after setting it to sleep.
-    async fn init(&mut self, spi: &mut SPI, delay:  DELAY) -> Result<(), SPI::Error>;
+    async fn init(&mut self, spi: &mut SPI, delay: &mut DELAY) -> Result<(), SPI::Error>;
 }
 
 
@@ -40,7 +40,7 @@ where
         spi: &mut SPI,
         dc: DC,
         rst: RST,
-        delay: DELAY,
+        delay: &mut DELAY,
     ) -> Result<Self, SPI::Error>
     where
         Self: Sized;
@@ -62,7 +62,7 @@ where
         &mut self,
         spi: &mut SPI,
         buffer: &[u8],
-        delay: DELAY,
+        delay: &mut DELAY
     ) -> Result<(), SPI::Error>;
 
     /// Transmits partial data to the SRAM of the EPD
@@ -83,20 +83,20 @@ where
     /// Displays the frame data from SRAM
     ///
     /// This function waits until the device isn`t busy anymore
-    async  fn display_frame(&mut self, spi: &mut SPI, delay: DELAY) -> Result<(), SPI::Error>;
+    async  fn display_frame(&mut self, spi: &mut SPI,delay: &mut DELAY) -> Result<(), SPI::Error>;
 
     /// Provide a combined update&display and save some time (skipping a busy check in between)
     async  fn update_and_display_frame(
         &mut self,
         spi: &mut SPI,
         buffer: &[u8],
-        delay: DELAY,
+        delay: &mut DELAY
     ) -> Result<(), SPI::Error>;
 
     /// Clears the frame buffer on the EPD with the declared background color
     ///
     /// The background color can be changed with [`WaveshareDisplay::set_background_color`]
-    async  fn clear_frame(&mut self, spi: &mut SPI, delay:DELAY) -> Result<(), SPI::Error>;
+    async  fn clear_frame(&mut self, spi: &mut SPI, delay: &mut DELAY) -> Result<(), SPI::Error>;
 
   
    

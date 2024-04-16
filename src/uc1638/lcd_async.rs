@@ -1,6 +1,6 @@
 use core::marker::Sized;
 use embedded_hal_async::{delay::DelayNs, digital::Wait, spi::SpiDevice};
-use embedded_hal::digital::OutputPin;
+use embedded_hal_v2::digital::OutputPin;
 use crate::interface_async::DisplayInterface;
 use crate::traits_async::{InternalWiAdditions, WaveshareDisplay};
 use crate::{color::TwoBitColor, prelude::*};
@@ -25,7 +25,7 @@ for Lcd2in7<SPI,  DC, RST, DELAY>
         RST: OutputPin,
         DELAY: DelayNs,
 {
-   async fn init(&mut self, spi: &mut SPI, mut delay: DELAY) -> Result<(), SPI::Error> {
+   async fn init(&mut self, spi: &mut SPI, delay: &mut DELAY) -> Result<(), SPI::Error> {
         self.interface.reset(delay, 10).await?;
 
         self.cmd_with_data_u8(spi, 0xE1, &[0xE2]).await?;
@@ -68,7 +68,7 @@ for Lcd2in7<SPI,  DC, RST, DELAY>
         DELAY: DelayNs,
 {
     type DisplayColor = TwoBitColor;
-    async fn new(spi: &mut SPI, dc: DC, rst: RST,mut delay: DELAY) -> Result<Self, SPI::Error> {
+    async fn new(spi: &mut SPI, dc: DC, rst: RST,delay: &mut DELAY) -> Result<Self, SPI::Error> {
         let interface = DisplayInterface::new( dc, rst);
         let color = DEFAULT_BACKGROUND_COLOR;
 
@@ -111,12 +111,12 @@ for Lcd2in7<SPI,  DC, RST, DELAY>
         &mut self,
         spi: &mut SPI,
         buffer: &[u8],
-        delay:DELAY,
+        delay: &mut DELAY
     ) -> Result<(), SPI::Error> {
         Ok(())
     }
 
-    async  fn clear_frame(&mut self, spi: &mut SPI, _delay: DELAY) -> Result<(), SPI::Error> {
+    async  fn clear_frame(&mut self, spi: &mut SPI, _delay: &mut DELAY) -> Result<(), SPI::Error> {
         let color_value = self.color.get_byte_value();
 
         Ok(())
@@ -165,7 +165,8 @@ impl<SPI, DC, RST, DELAY> Lcd2in7<SPI, DC, RST, DELAY>
     }
     ///
     pub async fn put_char(&mut self,spi: &mut SPI,data:&[u8])-> Result<(), SPI::Error>{
-        self.cmd_with_data_u8(spi, 0x01, data).await
+        self.command_u8(spi,0x01).await?;
+        self.interface.data_all(spi,data).await
     }
 
     async fn send_data(&mut self, spi: &mut SPI, data: &[u8]) -> Result<(), SPI::Error> {
