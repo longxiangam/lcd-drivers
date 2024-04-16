@@ -6,13 +6,12 @@ use embedded_hal::digital::OutputPin;
 
 /// The Connection Interface of all (?) Waveshare EPD-Devices
 ///
-pub(crate) struct DisplayInterface<SPI, CS,  DC, RST, DELAY> {
+pub(crate) struct DisplayInterface<SPI,  DC, RST, DELAY> {
     /// SPI
     _spi: PhantomData<SPI>,
     /// DELAY
     _delay: PhantomData<DELAY>,
-    /// CS for SPI
-    cs: CS,
+
 
     /// Data/Command Control Pin (High for data, Low for command)
     dc: DC,
@@ -20,19 +19,17 @@ pub(crate) struct DisplayInterface<SPI, CS,  DC, RST, DELAY> {
     rst: RST,
 }
 
-impl<SPI, CS,  DC, RST, DELAY> DisplayInterface<SPI, CS,  DC, RST, DELAY>
+impl<SPI,  DC, RST, DELAY> DisplayInterface<SPI,  DC, RST, DELAY>
 where
     SPI: SpiDevice,
-    CS: OutputPin,
     DC: OutputPin,
     RST: OutputPin,
     DELAY: DelayNs,
 {
-    pub fn new(cs: CS,  dc: DC, rst: RST) -> Self {
+    pub  fn new( dc: DC, rst: RST) -> Self {
         DisplayInterface {
             _spi: PhantomData::default(),
             _delay: PhantomData::default(),
-            cs,
             dc,
             rst,
         }
@@ -95,8 +92,7 @@ where
 
     // spi write helper/abstraction function
     async fn write(&mut self, spi: &mut SPI, data: &[u8]) -> Result<(), SPI::Error> {
-        // activate spi with cs low
-        let _ = self.cs.set_low();
+
 
         // transfer spi data
         // Be careful!! Linux has a default limit of 4096 bytes per spi transfer
@@ -109,8 +105,7 @@ where
             spi.write(data).await?;
         }
 
-        // deactivate spi with cs high
-        let _ = self.cs.set_high();
+
 
         Ok(())
     }
@@ -123,7 +118,7 @@ where
     /// The timing of keeping the reset pin low seems to be important and different per device.
     /// Most displays seem to require keeping it low for 10ms, but the 7in5_v2 only seems to reset
     /// properly with 2ms
-    pub(crate) async fn reset(&mut self, delay: &mut DELAY, duration: u8) {
+    pub(crate) async fn reset(&mut self,  delay:&mut DELAY, duration: u8) -> Result<(), SPI::Error>{
         let _ = self.rst.set_high();
         delay.delay_ms(10).await;
 
@@ -133,5 +128,6 @@ where
         //TODO: the upstream libraries always sleep for 200ms here
         // 10ms works fine with just for the 7in5_v2 but this needs to be validated for other devices
         delay.delay_ms(250).await;
+        Ok(())
     }
 }

@@ -9,90 +9,89 @@ use crate::uc1638::{DEFAULT_BACKGROUND_COLOR, HEIGHT, WIDTH};
 
 /// Lcd2in7 driver
 ///
-pub struct Lcd2in7<SPI, CS, DC, RST, DELAY> {
+pub struct Lcd2in7<SPI, DC, RST, DELAY> {
     /// Connection Interface
-    interface: DisplayInterface<SPI, CS, DC, RST, DELAY>,
+    interface: DisplayInterface<SPI, DC, RST, DELAY>,
     /// Background Color
     color: TwoBitColor,
 }
 
-impl<SPI, CS, DC, RST, DELAY> InternalWiAdditions<SPI, CS, DC, RST, DELAY>
-for Lcd2in7<SPI, CS, DC, RST, DELAY>
+impl<SPI,  DC, RST, DELAY> InternalWiAdditions<SPI,  DC, RST, DELAY>
+for Lcd2in7<SPI,  DC, RST, DELAY>
     where
         SPI: SpiDevice,
-        CS: OutputPin,
+
         DC: OutputPin,
         RST: OutputPin,
         DELAY: DelayNs,
 {
-   async fn init(&mut self, spi: &mut SPI, delay: &mut DELAY) -> Result<(), SPI::Error> {
+   async fn init(&mut self, spi: &mut SPI, mut delay: DELAY) -> Result<(), SPI::Error> {
         self.interface.reset(delay, 10).await?;
 
-        self.cmd_with_data_u8(spi, 0xE1, &[0xE2]);
+        self.cmd_with_data_u8(spi, 0xE1, &[0xE2]).await?;
 
-        delay.delay_ms(10);
+        delay.delay_ms(10).await;
 
-        self.cmd_with_data_u8(spi, 0x04, &[0x00]);
+        self.cmd_with_data_u8(spi, 0x04, &[0x00]).await?;
 
-        self.command_u8(spi, 0xEB);
+        self.command_u8(spi, 0xEB).await?;
 
-        self.cmd_with_data_u8(spi, 0x81, &[80]);
+        self.cmd_with_data_u8(spi, 0x81, &[80]).await?;
 
-        self.cmd_with_data_u8(spi, 0xb8, &[0x00]);
+        self.cmd_with_data_u8(spi, 0xb8, &[0x00]).await?;
 
-        self.command_u8(spi, 0xa3);
-        self.command_u8(spi, 0x94);
-        self.command_u8(spi, 0xc4);
+        self.command_u8(spi, 0xa3).await?;
+        self.command_u8(spi, 0x94).await?;
+        self.command_u8(spi, 0xc4).await?;
 
-        self.command_u8(spi, 0x60);
-        self.command_u8(spi, 0x70);
+        self.command_u8(spi, 0x60).await?;
+        self.command_u8(spi, 0x70).await?;
 
-        self.cmd_with_data_u8(spi, 0xf1, &[95]);;
+        self.cmd_with_data_u8(spi, 0xf1, &[95]).await?;;
 
-        self.command_u8(spi, 0xd2);
-        self.command_u8(spi, 0xd5);
+        self.command_u8(spi, 0xd2).await?;
+        self.command_u8(spi, 0xd5).await?;
 
-        self.cmd_with_data_u8(spi, 0xc9, &[0xaF]);
+        self.cmd_with_data_u8(spi, 0xc9, &[0xaF]).await?;
 
-        delay.delay_ms(100);
+        delay.delay_ms(100).await;
         Ok(())
     }
 }
 
-impl<SPI, CS, DC, RST, DELAY> WaveshareDisplay<SPI, CS, DC, RST, DELAY>
-for Lcd2in7<SPI, CS, DC, RST, DELAY>
+impl<SPI,  DC, RST, DELAY> WaveshareDisplay<SPI,  DC, RST, DELAY>
+for Lcd2in7<SPI,  DC, RST, DELAY>
     where
         SPI: SpiDevice,
-        CS: OutputPin,
         DC: OutputPin,
         RST: OutputPin,
         DELAY: DelayNs,
 {
     type DisplayColor = TwoBitColor;
-    fn new(spi: &mut SPI, cs: CS, dc: DC, rst: RST, delay: &mut DELAY) -> Result<Self, SPI::Error> {
-        let interface = DisplayInterface::new(cs, dc, rst);
+    async fn new(spi: &mut SPI, dc: DC, rst: RST,mut delay: DELAY) -> Result<Self, SPI::Error> {
+        let interface = DisplayInterface::new( dc, rst);
         let color = DEFAULT_BACKGROUND_COLOR;
 
         let mut epd = Lcd2in7 { interface, color };
 
-        epd.init(spi, delay)?;
+        epd.init(spi, delay).await?;
 
         Ok(epd)
     }
 
-    fn update_frame(
+    async fn update_frame(
         &mut self,
         spi: &mut SPI,
         buffer: &[u8],
         _delay: &mut DELAY,
     ) -> Result<(), SPI::Error> {
-        self.cmd_with_data_u8(spi, 0x04, &[0x00]);
-        self.cmd_with_data_u8(spi, 0x60, &[0x70]);
-        self.cmd_with_data_u8(spi, 0x01, buffer)?;
+        self.cmd_with_data_u8(spi, 0x04, &[0x00]).await?;
+        self.cmd_with_data_u8(spi, 0x60, &[0x70]).await?;
+        self.cmd_with_data_u8(spi, 0x01, buffer).await?;
         Ok(())
     }
 
-    fn update_partial_frame(
+    async  fn update_partial_frame(
         &mut self,
         spi: &mut SPI,
         buffer: &[u8],
@@ -104,36 +103,21 @@ for Lcd2in7<SPI, CS, DC, RST, DELAY>
         Ok(())
     }
 
-    fn display_frame(&mut self, spi: &mut SPI, _delay: &mut DELAY) -> Result<(), SPI::Error> {
+    async  fn display_frame(&mut self, spi: &mut SPI, _delay: &mut DELAY) -> Result<(), SPI::Error> {
         Ok(())
     }
 
-    fn update_and_display_frame(
+    async  fn update_and_display_frame(
         &mut self,
         spi: &mut SPI,
         buffer: &[u8],
-        delay: &mut DELAY,
+        delay:DELAY,
     ) -> Result<(), SPI::Error> {
         Ok(())
     }
 
-    fn clear_frame(&mut self, spi: &mut SPI, _delay: &mut DELAY) -> Result<(), SPI::Error> {
+    async  fn clear_frame(&mut self, spi: &mut SPI, _delay: DELAY) -> Result<(), SPI::Error> {
         let color_value = self.color.get_byte_value();
-
-        self.cmd_with_data_u8(spi, 0x04, &[0x00]);
-        self.command_u8(spi, 0x60);
-        self.command_u8(spi, 0x70);
-
-        for i in 0..WIDTH {
-            for j in 0..(HEIGHT / 2) {
-
-                self.cmd_with_data_u8(spi, 0x01, &[0x00]);
-
-            }
-        }
-
-        /*   self.goto(spi, 40, 40);
-          self.cmd_with_data_u8(spi, 0x01, &[0xFF,0x00,0xFF,0xFF]); */
 
         Ok(())
     }
@@ -155,10 +139,9 @@ for Lcd2in7<SPI, CS, DC, RST, DELAY>
     }
 }
 
-impl<SPI, CS, DC, RST, DELAY> Lcd2in7<SPI, CS, DC, RST, DELAY>
+impl<SPI, DC, RST, DELAY> Lcd2in7<SPI, DC, RST, DELAY>
     where
         SPI: SpiDevice,
-        CS: OutputPin,
         DC: OutputPin,
         RST: OutputPin,
         DELAY: DelayNs,
