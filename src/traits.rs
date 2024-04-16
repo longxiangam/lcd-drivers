@@ -4,19 +4,6 @@ use embedded_hal::{
     digital::v2::*,
 };
 
-/// All commands need to have this trait which gives the address of the command
-/// which needs to be send via SPI with activated CommandsPin (Data/Command Pin in CommandMode)
-pub(crate) trait Command {
-    fn address(self) -> u8;
-}
-
-///支持直接写命令码
-impl Command for u8 {
-    fn address(self) -> u8 {
-        return self
-    }
-}
-
 
 pub(crate) trait InternalWiAdditions<SPI, CS,  DC, RST, DELAY>
 where

@@ -1,9 +1,8 @@
 use crate::Command;
 use core::marker::PhantomData;
-use embedded_hal::{
-    blocking::{delay::*, spi::Write},
-    digital::v2::*,
-};
+use embedded_hal_async::{delay::DelayNs, digital::Wait, spi::SpiDevice};
+use embedded_hal::digital::OutputPin;
+
 
 /// The Connection Interface of all (?) Waveshare EPD-Devices
 ///
@@ -23,11 +22,11 @@ pub(crate) struct DisplayInterface<SPI, CS,  DC, RST, DELAY> {
 
 impl<SPI, CS,  DC, RST, DELAY> DisplayInterface<SPI, CS,  DC, RST, DELAY>
 where
-    SPI: Write<u8>,
+    SPI: SpiDevice,
     CS: OutputPin,
     DC: OutputPin,
     RST: OutputPin,
-    DELAY: DelayMs<u8>,
+    DELAY: DelayNs,
 {
     pub fn new(cs: CS,  dc: DC, rst: RST) -> Self {
         DisplayInterface {
@@ -42,25 +41,23 @@ where
     /// Basic function for sending [Commands](Command).
     ///
     /// Enables direct interaction with the device with the help of [data()](DisplayInterface::data())
-    pub(crate) fn cmd<T: Command>(&mut self, spi: &mut SPI, command: T) -> Result<(), SPI::Error> {
+    pub(crate)  async  fn cmd<T: Command>(&mut self, spi: &mut SPI, command: T) -> Result<(), SPI::Error> {
         // low for commands
         let _ = self.dc.set_low();
 
         // Transfer the command over spi
-        self.write(spi, &[command.address()])
+        self.write(spi, &[command.address()]).await
     }
 
     /// Basic function for sending an array of u8-values of data over spi
     ///
     /// Enables direct interaction with the device with the help of [command()](Epd4in2::command())
-    pub(crate) fn data(&mut self, spi: &mut SPI, data: &[u8]) -> Result<(), SPI::Error> {
+    pub(crate) async fn data(&mut self, spi: &mut SPI, data: &[u8]) -> Result<(), SPI::Error> {
         // high for data
         let _ = self.dc.set_high();
 
-        for val in data.iter().copied() {
-            // Transfer data one u8 at a time over spi
-            self.write(spi, &[val])?;
-        }
+        // Transfer data one u8 at a time over spi
+        self.write(spi, data).await?;
 
         Ok(())
     }
@@ -68,20 +65,20 @@ where
     /// Basic function for sending [Commands](Command) and the data belonging to it.
     ///
     /// TODO: directly use ::write? cs wouldn't needed to be changed twice than
-    pub(crate) fn cmd_with_data<T: Command>(
+    pub(crate) async fn cmd_with_data<T: Command>(
         &mut self,
         spi: &mut SPI,
         command: T,
         data: &[u8],
     ) -> Result<(), SPI::Error> {
-        self.cmd(spi, command)?;
-        self.data(spi, data)
+        self.cmd(spi, command).await?;
+        self.data(spi, data).await
     }
 
     /// Basic function for sending the same byte of data (one u8) multiple times over spi
     ///
     /// Enables direct interaction with the device with the help of [command()](ConnectionInterface::command())
-    pub(crate) fn data_x_times(
+    pub(crate) async fn data_x_times(
         &mut self,
         spi: &mut SPI,
         val: u8,
@@ -91,13 +88,13 @@ where
         let _ = self.dc.set_high();
         // Transfer data (u8) over spi
         for _ in 0..repetitions {
-            self.write(spi, &[val])?;
+            self.write(spi, &[val]).await?;
         }
         Ok(())
     }
 
     // spi write helper/abstraction function
-    fn write(&mut self, spi: &mut SPI, data: &[u8]) -> Result<(), SPI::Error> {
+    async fn write(&mut self, spi: &mut SPI, data: &[u8]) -> Result<(), SPI::Error> {
         // activate spi with cs low
         let _ = self.cs.set_low();
 
@@ -106,10 +103,10 @@ where
         // see https://raspberrypi.stackexchange.com/questions/65595/spi-transfer-fails-with-buffer-size-greater-than-4096
         if cfg!(target_os = "linux") {
             for data_chunk in data.chunks(4096) {
-                spi.write(data_chunk)?;
+                spi.write(data_chunk).await?;
             }
         } else {
-            spi.write(data)?;
+            spi.write(data).await?;
         }
 
         // deactivate spi with cs high
@@ -126,15 +123,15 @@ where
     /// The timing of keeping the reset pin low seems to be important and different per device.
     /// Most displays seem to require keeping it low for 10ms, but the 7in5_v2 only seems to reset
     /// properly with 2ms
-    pub(crate) fn reset(&mut self, delay: &mut DELAY, duration: u8) {
+    pub(crate) async fn reset(&mut self, delay: &mut DELAY, duration: u8) {
         let _ = self.rst.set_high();
-        delay.delay_ms(10);
+        delay.delay_ms(10).await;
 
         let _ = self.rst.set_low();
-        delay.delay_ms(duration);
+        delay.delay_ms(duration as u32).await;
         let _ = self.rst.set_high();
         //TODO: the upstream libraries always sleep for 200ms here
         // 10ms works fine with just for the 7in5_v2 but this needs to be validated for other devices
-        delay.delay_ms(250);
+        delay.delay_ms(250).await;
     }
 }

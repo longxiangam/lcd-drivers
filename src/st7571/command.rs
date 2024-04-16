@@ -8,7 +8,7 @@ pub(crate) enum Command {
     
 }
 
-impl traits::Command for Command {
+impl crate::Command for Command {
     /// Returns the address of the command
     fn address(self) -> u8 {
         self as u8

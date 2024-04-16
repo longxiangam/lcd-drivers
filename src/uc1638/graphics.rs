@@ -7,7 +7,7 @@ use crate::color::TwoBitColor;
 use crate::graphics::TwoBitColorDisplay;
 use crate::uc1638::{DEFAULT_BACKGROUND_COLOR, HEIGHT, WIDTH};
 use crate::graphics::{Display, DisplayRotation};
-use crate::st7571::prelude::Display2in3;
+
 
 /// 
 pub struct Display2in7 {
