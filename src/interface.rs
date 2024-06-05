@@ -64,6 +64,18 @@ where
 
         Ok(())
     }
+    /// Basic function for sending an array of u8-values of data over spi
+    ///
+    /// Enables direct interaction with the device with the help of [command()](Epd4in2::command())
+    pub(crate) fn data_all(&mut self, spi: &mut SPI, data: &[u8]) -> Result<(), SPI::Error> {
+        // high for data
+        let _ = self.dc.set_high();
+
+        self.write(spi, data)?;
+
+        Ok(())
+    }
+
 
     /// Basic function for sending [Commands](Command) and the data belonging to it.
     ///

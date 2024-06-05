@@ -5,6 +5,10 @@ use embedded_hal::{
 use crate::interface::DisplayInterface;
 use crate::traits::InternalWiAdditions;
 use crate::{color::TwoBitColor, prelude::*};
+use crate::uc1638::DEFAULT_BACKGROUND_COLOR;
+use crate::uc1638::WIDTH;
+use crate::uc1638::HEIGHT;
+use crate::uc1638::Command;
 /// Lcd2in7 driver
 ///
 pub struct Lcd2in7<SPI, CS, DC, RST, DELAY> {
@@ -214,7 +218,8 @@ impl<SPI, CS, DC, RST, DELAY> Lcd2in7<SPI, CS, DC, RST, DELAY>
     }
     ///
     pub fn put_char(&mut self,spi: &mut SPI,data:&[u8]){
-        self.cmd_with_data_u8(spi, 0x01, data);
+        self.command_u8(spi, 0x01 );
+        self.interface.data_all(spi,data);
     }
 
     fn send_data(&mut self, spi: &mut SPI, data: &[u8]) -> Result<(), SPI::Error> {

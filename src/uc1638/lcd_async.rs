@@ -36,7 +36,7 @@ for Lcd2in7<SPI,  DC, RST, DELAY>
 
         self.command_u8(spi, 0xEB).await?;
 
-        self.cmd_with_data_u8(spi, 0x81, &[80]).await?;
+        self.cmd_with_data_u8(spi, 0x81, &[145]).await?;//对比度 0-255 越大越深
 
         self.cmd_with_data_u8(spi, 0xb8, &[0x00]).await?;
 
@@ -146,6 +146,10 @@ impl<SPI, DC, RST, DELAY> Lcd2in7<SPI, DC, RST, DELAY>
         RST: OutputPin,
         DELAY: DelayNs,
 {
+
+    pub async fn set_contrast(&mut self,spi:&mut SPI,contrast:u8)-> Result<(), SPI::Error>{
+        self.cmd_with_data_u8(spi, 0x81, &[contrast]).await//对比度 0-255 越大越深
+    }
     /// X对应列,值范围0-239
     /// Y对应页,值范围0-23,共24页,每页8行
     pub async fn goto(&mut self,spi:&mut SPI,X: u8, Y: u8) -> Result<(), SPI::Error>{
