@@ -32,9 +32,16 @@ impl Default for DisplayRotation {
 /// - Clearing
 pub trait Display: DrawTarget<Color = BinaryColor> {
     /// Clears the buffer of the display with the chosen background color
-    fn clear_buffer(&mut self, background_color: Color) {
+    fn clear_buffer(&mut self, background_color: BinaryColor) {
         for elem in self.get_mut_buffer().iter_mut() {
-            *elem = background_color.get_byte_value();
+            match background_color {
+                BinaryColor::Off => {
+                    *elem = 0x00;
+                }
+                BinaryColor::On => {
+                    *elem = 0xff;
+                }
+            }
         }
     }
 

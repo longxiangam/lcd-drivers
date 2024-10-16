@@ -119,7 +119,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "lcd_drivers"
+name = "lcd-drivers"
 version = "0.1.0"
 dependencies = [
  "embedded-graphics",

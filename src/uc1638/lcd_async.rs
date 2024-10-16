@@ -36,7 +36,7 @@ for Lcd2in7<SPI,  DC, RST, DELAY>
 
         self.command_u8(spi, 0xEB).await?;
 
-        self.cmd_with_data_u8(spi, 0x81, &[145]).await?;//对比度 0-255 越大越深
+        self.cmd_with_data_u8(spi, 0x81, &[65]).await?;//对比度 0-255 越大越深
 
         self.cmd_with_data_u8(spi, 0xb8, &[0x00]).await?;
 

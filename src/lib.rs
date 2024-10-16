@@ -25,7 +25,8 @@ pub mod uc1638;
 ///
 pub mod st7571;
 
-
+#[cfg(feature = "sharp1in26")]
+pub mod sharp1in26;
 
 /// Includes everything important besides the chosen Display
 pub mod prelude {
@@ -38,7 +39,7 @@ pub mod prelude {
     pub use crate::traits_async::{
         WaveshareDisplay,
     };
-    pub use crate::SPI_MODE;
+
 
     pub use crate::graphics::{Display, DisplayRotation, OctDisplay, TriDisplay};
 
@@ -49,6 +50,9 @@ pub mod prelude {
 
     #[cfg(feature = "st7571")]
     pub use crate::st7571::Lcd2in3;
+
+    #[cfg(feature = "sharp1in26")]
+    pub use crate::sharp1in26::Lcd1in26;
 }
 
 /// Computes the needed buffer length. Takes care of rounding up in case width
@@ -67,13 +71,6 @@ pub const fn buffer_len(width: usize, height: usize) -> usize {
 use embedded_hal_v2::spi::{Mode, Phase, Polarity};
 #[cfg(feature = "blocking")]
 use embedded_hal::spi::{Mode, Phase, Polarity};
-
-/// SPI mode -
-/// For more infos see [Requirements: SPI](index.html#spi)
-pub const SPI_MODE: Mode = Mode {
-    phase: Phase::CaptureOnFirstTransition,
-    polarity: Polarity::IdleLow,
-};
 
 
 
